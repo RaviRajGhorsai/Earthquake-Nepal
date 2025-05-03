@@ -1,0 +1,87 @@
+body {
+    display: flex;
+    margin: 0;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  }
+
+  #sidebar {
+    width: 250px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  }
+
+  #sidebar label {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #b00020;
+  }
+
+  #year-select {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+  }
+
+  #sidebar button {
+    background-color: #b00020;
+    color: white;
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+  }
+
+  #sidebar button:hover {
+    background-color: #8c001a;
+  }
+
+  #map {
+    flex-grow: 1;
+  }
+
+  /* Ripple animation for custom markers */
+  .ripple_container {
+    position: relative;
+    width: 20px;
+    height: 20px;
+  }
+
+  .ripple {
+    position: absolute;
+    border: 3px solid red;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: ripple 2s infinite;
+    opacity: 0.6;
+  }
+
+  .ripple:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+
+  .ripple:nth-child(3) {
+    animation-delay: 1s;
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0.5);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }

@@ -6,17 +6,19 @@
     <title>Earthquake Map</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        #map { height: 600px; width: 100%; }
-        body { font-family: sans-serif; margin: 0; }
-        #sidebar { padding: 10px; background: #f4f4f4; }
-    </style>
+    <link rel="stylesheet" href="{% static 'style/map_style.css' %}" />  
 </head>
+
+
 <body>
 <div id="sidebar">
     <label for="year-select">Select Year:</label>
     <select id="year-select"></select>
     <button onclick="renderMap()">Show</button>
+    <div id="info">
+        <h2>Earthquake Information</h2>
+        <p>Select a year to view earthquake data.</p>
+    </div>
 </div>
 <div id="map"></div>
 
@@ -28,10 +30,31 @@
     let map;
     let Earthquake_data = {};
     let Current_markers = [];
-
+    
     map = L.map('map').setView([28.3949, 84.1240], 6);
     //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+
+    // Load Nepal boundary GeoJSON
+    function loadNepalBoundary() {
+        fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson') // or use your own Nepal-only geojson
+        .then(response => response.json())
+        .then(data => {
+        const nepalGeoJson = {
+            type: "FeatureCollection",
+            features: data.features.filter(f => f.properties.name === "Nepal")
+        };
+    
+        L.geoJSON(nepalGeoJson, {
+            style: {
+            color: 'white',        // border color
+            weight: 3,           // border thickness
+            fill: false          // don't fill the country
+            }
+        }).addTo(map);
+        });
+    }
+    loadNepalBoundary();
 
     fetch("{% static 'Earthquake years.json' %}")
     .then(res => res.json())
@@ -56,23 +79,23 @@
 
         map = L.map('map').setView([28.3949, 84.1240], 6);
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
-        
+        loadNepalBoundary();
         if (Array.isArray(YearData)){
             YearData.forEach(loc => {
-                {% comment %} const Custom_marker = L.icon({
-                    iconUrl: '{% static 'Rp0l71YJGJ.gif' %}',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [0, -30]
-                });  {% endcomment %}
-                const marker = L.circleMarker([parseFloat(loc.Latitude), parseFloat(loc.Longitude)], {
-                    radius: loc.Magnitude * 1.2,
-                    
-                    color: 'red',
-                    fillColor: '',
-                    fillOpacity: 0.0
-                    //icon: Custom_marker
+                const Custom_marker = L.divIcon({
+                    className: '',
+                    html: `<div class='ripple_container'>
+                    <div class='ripple'></div>
+                    <div class='ripple'></div>
+                    <div class='ripple'></div>
+                    </div>`,
+                    iconSize: [30, 30]
+                });  
+                const marker = L.marker([parseFloat(loc.Latitude), parseFloat(loc.Longitude)], {
+                    icon: Custom_marker
                 }).addTo(map);
+
+                
 
                 marker.bindPopup(`<strong>${loc.Epicenter}</strong><br>Magnitude: ${loc.Magnitude}`);
                 Current_markers.push(marker);
