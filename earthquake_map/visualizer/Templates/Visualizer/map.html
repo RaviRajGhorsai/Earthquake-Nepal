@@ -16,8 +16,7 @@
     <select id="year-select"></select>
     <button onclick="renderMap()">Show</button>
     <div id="info">
-        <h2>Earthquake Information</h2>
-        <p>Select a year to view earthquake data.</p>
+        <h2>Earthquake Information</h2>   
     </div>
 </div>
 <div id="map"></div>
@@ -30,11 +29,15 @@
     let map;
     let Earthquake_data = {};
     let Current_markers = [];
-    
-    map = L.map('map').setView([28.3949, 84.1240], 6);
-    //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
 
+    function load_map(){
+        map = L.map('map').setView([28.3949, 84.1240], 6);
+        //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        loadNepalBoundary();
+    }
+
+    load_map();
     // Load Nepal boundary GeoJSON
     function loadNepalBoundary() {
         fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson') // or use your own Nepal-only geojson
@@ -54,9 +57,9 @@
         }).addTo(map);
         });
     }
-    loadNepalBoundary();
+    
 
-    fetch("{% static 'Earthquake years.json' %}")
+    fetch("{% static 'EarthquakeData.json' %}")
     .then(res => res.json())
     .then(data => {
         Earthquake_data = data;
@@ -71,14 +74,21 @@
         });
     });
 
+    function formatTimeWithAMPM(timeStr) {
+        const [hour, minute] = timeStr.split(':').map(Number);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+        return `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
+    }
+
     function renderMap(){
         const year = document.getElementById('year-select').value;
         const YearData = Earthquake_data[year];
         
         if (map) map.remove();
 
-        map = L.map('map').setView([28.3949, 84.1240], 6);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        load_map();
+
         loadNepalBoundary();
         if (Array.isArray(YearData)){
             YearData.forEach(loc => {
@@ -95,10 +105,20 @@
                     icon: Custom_marker
                 }).addTo(map);
 
-                
-
                 marker.bindPopup(`<strong>${loc.Epicenter}</strong><br>Magnitude: ${loc.Magnitude}`);
                 Current_markers.push(marker);
+
+                marker.on('click', function() {
+                    document.getElementById('info').innerHTML = `
+                    <h2>Earthquake Information</h2>
+                    <p><strong>Epicenter: </strong>${loc.Epicenter}<p>
+                    <p><strong>Magnitude: </strong>${loc.Magnitude}</p>
+                    <p><strong>Year: </strong>${loc.Date_AD}</p>
+                    <p><strong>Latitude: </strong>${loc.Latitude}</p>
+                    <p><strong>Longitude: </strong>${loc.Longitude}</p>
+                    <p><strong>Local Time: </strong>${formatTimeWithAMPM(loc.Time_Local)}</p>
+                    `;
+                });
             });
         }
         
